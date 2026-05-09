@@ -18,11 +18,13 @@ echo "Pipeline directory: $PIPELINE_DIR"
 # Checks
 # --------------------------------------------------
 if ! command -v nextflow &> /dev/null; then
-    echo "[WARNING] Nextflow not found in PATH. You will need it to run the pipeline."
+    echo "[WARNING] Nextflow not found in PATH. 
+    echo "Please install Nextflow before using BrSeqTB"
 fi
 
 if ! command -v java &> /dev/null; then
     echo "[WARNING] Java not found in PATH."
+    echo "Please install Java (>11) before using BrSeqTB"
 fi
 
 chmod +x "$WRAPPER_SRC"

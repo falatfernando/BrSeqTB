@@ -6,64 +6,71 @@ echo "========================================="
 echo "        BrSeqTB Installer"
 echo "========================================="
 
-# Detecta diretório real da pipeline
+# Detect pipeline root directory
 PIPELINE_DIR="$( cd "$( dirname "${BASH_SOURCE[0]}" )" && pwd )"
-BIN_DIR="$PIPELINE_DIR/bin"
+WRAPPER_SRC="$PIPELINE_DIR/bin/brseqtb"
+LOCAL_BIN="$HOME/.local/bin"
 
 echo ""
-echo "Pipeline directory detected:"
-echo "  $PIPELINE_DIR"
-echo ""
+echo "Pipeline directory: $PIPELINE_DIR"
 
 # --------------------------------------------------
-# Check Nextflow
+# Checks
 # --------------------------------------------------
 if ! command -v nextflow &> /dev/null; then
-    echo "[ERROR] Nextflow not found in PATH."
-    echo "Please install Nextflow before using BrSeqTB."
-    exit 1
+    echo "[WARNING] Nextflow not found in PATH. You will need it to run the pipeline."
 fi
 
-echo "[OK] Nextflow detected"
-
-# --------------------------------------------------
-# Check Java
-# --------------------------------------------------
 if ! command -v java &> /dev/null; then
-    echo "[ERROR] Java not found in PATH."
-    echo "Please install Java (>=11) before using BrSeqTB."
-    exit 1
+    echo "[WARNING] Java not found in PATH."
 fi
 
-echo "[OK] Java detected"
+chmod +x "$WRAPPER_SRC"
 
 # --------------------------------------------------
-# Make wrapper executable
+# Installation Strategy: Symlink to ~/.local/bin
 # --------------------------------------------------
-chmod +x "$BIN_DIR/brseqtb"
+# This is the cleanest way. Most modern distros include ~/.local/bin in PATH.
+# It works for Bash, Zsh, Fish, etc.
+
+mkdir -p "$LOCAL_BIN"
+
+if [ -L "$LOCAL_BIN/brseqtb" ]; then
+    rm "$LOCAL_BIN/brseqtb"
+fi
+
+ln -s "$WRAPPER_SRC" "$LOCAL_BIN/brseqtb"
+
+echo "[OK] Created symlink: $LOCAL_BIN/brseqtb -> $WRAPPER_SRC"
 
 # --------------------------------------------------
-# Add to PATH safely (dynamic path)
+# Verify PATH
 # --------------------------------------------------
-if grep -Fq "$BIN_DIR" ~/.bashrc; then
-    echo "[INFO] BrSeqTB already present in PATH."
-else
+if [[ ":$PATH:" != *":$LOCAL_BIN:"* ]]; then
     echo ""
-    echo "Adding BrSeqTB to your PATH..."
-    echo "" >> ~/.bashrc
-    echo "# BrSeqTB" >> ~/.bashrc
-    echo "export PATH=\"$BIN_DIR:\$PATH\"" >> ~/.bashrc
-    echo "[OK] Added to ~/.bashrc"
+    echo "[NOTICE] $LOCAL_BIN is not in your PATH."
+    echo "To fix this for all shells, add this line to your .bashrc or .zshrc:"
+    echo "  export PATH=\"\$HOME/.local/bin:\$PATH\""
+    
+    # Optional: Auto-add to bashrc if user is on bash
+    if [ -f "$HOME/.bashrc" ] && [[ "$SHELL" == *"bash"* ]]; then
+        if ! grep -Fq ".local/bin" "$HOME/.bashrc"; then
+             echo "Adding to ~/.bashrc..."
+             echo -e "\n# User local bin\nexport PATH=\"\$HOME/.local/bin:\$PATH\"" >> "$HOME/.bashrc"
+        fi
+    fi
+     # Optional: Auto-add to zshrc if user is on zsh
+    if [ -f "$HOME/.zshrc" ] && [[ "$SHELL" == *"zsh"* ]]; then
+        if ! grep -Fq ".local/bin" "$HOME/.zshrc"; then
+             echo "Adding to ~/.zshrc..."
+             echo -e "\n# User local bin\nexport PATH=\"\$HOME/.local/bin:\$PATH\"" >> "$HOME/.zshrc"
+        fi
+    fi
 fi
 
 echo ""
 echo "========================================="
 echo " Installation complete!"
 echo "========================================="
-echo ""
-echo "Please open a new terminal or run:"
-echo "  source ~/.bashrc"
-echo ""
-echo "Then you can run:"
-echo "  brseqtb"
-echo ""
+echo "You can now run 'brseqtb' from any directory."
+echo "Note: Ensure your current directory has the 'input/' and 'reads/' folders."

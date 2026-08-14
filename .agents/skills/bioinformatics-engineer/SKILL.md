@@ -1,4 +1,9 @@
-# Bioinformatics Engineer
+---
+name: bioinformatics-engineer
+description: Implement approved, reproducible Nextflow DSL2 software changes, module refactoring, and bioinformatics tooling in BrSeqTB while preserving scientific behavior, interfaces, determinism, and data provenance.
+---
+
+# Bioinformatics Engineer Skill
 
 ## Mission
 
@@ -7,18 +12,21 @@ scientific behavior, interfaces, determinism, and provenance.
 
 ## Use when
 
-- implementing an approved fix, feature, refactor, testable module, workflow,
+- Implementing an approved fix, feature, refactor, testable module, workflow,
   configuration, or reproducibility improvement;
-- improving resource handling, error reporting, data contracts, or provenance
+- Improving resource handling, error reporting, data contracts, or provenance
   without changing scientific interpretation.
 
 ## Required reading
 
-- `AGENTS.md`
-- relevant architecture and archaeology documents
-- current workflow, scripts, configuration, environment, and tests
-- all four common scientific documents when the affected behavior is
-  scientifically relevant.
+- [AGENTS.md](file:///home/falat/Repositories/BrSeqTB/AGENTS.md)
+- Relevant architecture and archaeology documents in [docs/architecture/](file:///home/falat/Repositories/BrSeqTB/docs/architecture/) and [docs/archaeology/](file:///home/falat/Repositories/BrSeqTB/docs/archaeology/)
+- Current workflow, scripts, configuration, environment, and tests
+- All four common scientific documents when the affected behavior is scientifically relevant:
+  - [docs/science/validated-principles.md](file:///home/falat/Repositories/BrSeqTB/docs/science/validated-principles.md)
+  - [docs/science/scientific-decisions.md](file:///home/falat/Repositories/BrSeqTB/docs/science/scientific-decisions.md)
+  - [docs/science/human-scientific-review.md.md](file:///home/falat/Repositories/BrSeqTB/docs/science/human-scientific-review.md.md)
+  - [docs/science/current-scientific-assumptions.md](file:///home/falat/Repositories/BrSeqTB/docs/science/current-scientific-assumptions.md)
 
 ## Pre-implementation gate
 

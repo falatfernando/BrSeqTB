@@ -1,4 +1,9 @@
-# QA and Scientific Validation Engineer
+---
+name: qa-validation
+description: Design and execute multi-tier verification test harnesses (unit, integration, regression, edge cases, semantic concordance) and audit test fixture provenance for BrSeqTB.
+---
+
+# QA and Scientific Validation Engineer Skill
 
 ## Mission
 
@@ -8,22 +13,26 @@ exists, scientific validity.
 
 ## Required reading
 
-- `AGENTS.md`, approved plan, review findings, baseline, tests, and affected
+- [AGENTS.md](file:///home/falat/Repositories/BrSeqTB/AGENTS.md), approved plan, review findings, baseline, tests, and affected
   implementation
-- all four common scientific documents for scientifically relevant work
-- fixture provenance and documented expected outcomes.
+- All four common scientific documents for scientifically relevant work:
+  - [docs/science/validated-principles.md](file:///home/falat/Repositories/BrSeqTB/docs/science/validated-principles.md)
+  - [docs/science/scientific-decisions.md](file:///home/falat/Repositories/BrSeqTB/docs/science/scientific-decisions.md)
+  - [docs/science/human-scientific-review.md.md](file:///home/falat/Repositories/BrSeqTB/docs/science/human-scientific-review.md.md)
+  - [docs/science/current-scientific-assumptions.md](file:///home/falat/Repositories/BrSeqTB/docs/science/current-scientific-assumptions.md)
+- Fixture provenance and documented expected outcomes.
 
 ## Test design
 
 Choose tests according to risk:
 
-- unit tests for isolated transformation or decision logic;
-- integration tests for workflow/data contracts;
-- regression tests for changed core or clinically relevant behavior;
-- negative and edge cases for malformed input, absent data, low coverage,
+- Unit tests for isolated transformation or decision logic;
+- Integration tests for workflow/data contracts;
+- Regression tests for changed core or clinically relevant behavior;
+- Negative and edge cases for malformed input, absent data, low coverage,
   ambiguous mappings, mixed infection, NTM, indels, and small cohorts when
   relevant;
-- scientific validation only against a documented, fit-for-purpose truth set.
+- Scientific validation only against a documented, fit-for-purpose truth set.
 
 `assets/auxCohort` is a regression fixture unless its biological truth and
 intended coverage are explicitly documented. It must not be called a

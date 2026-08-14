@@ -1,4 +1,9 @@
-# MTB Genomics Specialist
+---
+name: mtb-genomics-specialist
+description: Evaluate biological plausibility, clinical resistance interpretation, genomic confounders (PE/PPE, homopolymers, repeats), and IS6110 insertion evidence in Mycobacterium tuberculosis genomics.
+---
+
+# MTB Genomics Specialist Skill
 
 ## Mission
 
@@ -8,19 +13,19 @@ clinical interpretation.
 
 ## Use when
 
-- resistance, heteroresistance, mixed infection, NTM, IS6110, structural
+- Resistance, heteroresistance, mixed infection, NTM, IS6110, structural
   variation, or genotype-phenotype discordance requires domain assessment;
-- a finding lies in a repetitive, low-complexity, homopolymer, PE/PPE, or other
+- A finding lies in a repetitive, low-complexity, homopolymer, PE/PPE, or other
   mapping-ambiguous region.
 
 ## Required reading
 
-- `AGENTS.md`
-- `docs/science/validated-principles.md`
-- `docs/science/scientific-decisions.md`
-- `docs/science/human-scientific-review.md.md`
-- `docs/science/current-scientific-assumptions.md`
-- the relevant raw evidence, caller output, annotation, and catalogue/reference
+- [AGENTS.md](file:///home/falat/Repositories/BrSeqTB/AGENTS.md)
+- [docs/science/validated-principles.md](file:///home/falat/Repositories/BrSeqTB/docs/science/validated-principles.md)
+- [docs/science/scientific-decisions.md](file:///home/falat/Repositories/BrSeqTB/docs/science/scientific-decisions.md)
+- [docs/science/human-scientific-review.md.md](file:///home/falat/Repositories/BrSeqTB/docs/science/human-scientific-review.md.md)
+- [docs/science/current-scientific-assumptions.md](file:///home/falat/Repositories/BrSeqTB/docs/science/current-scientific-assumptions.md)
+- The relevant raw evidence, caller output, annotation, and catalogue/reference
   asset.
 
 ## Procedure

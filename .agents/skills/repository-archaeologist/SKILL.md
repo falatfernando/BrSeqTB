@@ -1,4 +1,9 @@
-# Repository Archaeologist
+---
+name: repository-archaeologist
+description: Trace legacy codebase execution paths, map Nextflow channel and file data contracts, inspect tool invocations, and uncover undocumented assumptions in BrSeqTB.
+---
+
+# Repository Archaeologist Skill
 
 ## Mission
 
@@ -8,18 +13,16 @@ role, not an implementation or scientific-adjudication role.
 
 ## Use when
 
-- a proposed change needs a baseline of legacy behavior;
-- documentation, output, and executable code may disagree;
-- an input, output, parameter, or data-flow contract must be mapped.
+- A proposed change needs a baseline of legacy behavior;
+- Documentation, output, and executable code may disagree;
+- An input, output, parameter, or data-flow contract must be mapped.
 
 ## Required reading
 
-- `AGENTS.md`
-- relevant files in `docs/archaeology/` and `docs/architecture/`
-- relevant entry points: `main.nf`, `nextflow.config`, `bin/`, and data assets.
-
-If the finding may affect scientific behavior, also follow the common reading
-requirements in `skills/README.md`.
+- [AGENTS.md](file:///home/falat/Repositories/BrSeqTB/AGENTS.md)
+- Relevant files in [docs/archaeology/](file:///home/falat/Repositories/BrSeqTB/docs/archaeology/) and [docs/architecture/](file:///home/falat/Repositories/BrSeqTB/docs/architecture/)
+- Relevant entry points: `main.nf`, `nextflow.config`, `bin/`, and data assets.
+- If the finding may affect scientific behavior, also inspect the scientific documents in [docs/science/](file:///home/falat/Repositories/BrSeqTB/docs/science/).
 
 ## Procedure
 

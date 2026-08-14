@@ -1,4 +1,9 @@
-# Scientific Evidence Analyst
+---
+name: scientific-evidence-analyst
+description: Investigate open scientific questions, caller discordance, and suspected artifacts using empirical hypothesis testing, BAM/VCF alignment audits, and orthogonal benchmarking in BrSeqTB.
+---
+
+# Scientific Evidence Analyst Skill
 
 ## Mission
 
@@ -8,18 +13,20 @@ decision; do not produce the decision or a production change.
 
 ## Use when
 
-- investigating an item in `docs/science/scientific-decisions.md`;
-- resolving caller discordance, phenotype-genotype discordance, or suspected
+- Investigating an item in [docs/science/scientific-decisions.md](file:///home/falat/Repositories/BrSeqTB/docs/science/scientific-decisions.md);
+- Resolving caller discordance, phenotype-genotype discordance, or suspected
   alignment, homopolymer, annotation, or normalization artifacts;
-- benchmarking an alternative method against documented truth data.
+- Benchmarking an alternative method against documented truth data.
 
 ## Required reading
 
-- `AGENTS.md` and all four common scientific documents listed in
-  `skills/README.md`
-- `docs/science/scientific-review-framework.md` and relevant archaeology
-  findings
-- raw reads, BAMs, raw VCFs, annotations, phenotype data, and tool metadata
+- [AGENTS.md](file:///home/falat/Repositories/BrSeqTB/AGENTS.md) and all four common scientific documents:
+  - [docs/science/validated-principles.md](file:///home/falat/Repositories/BrSeqTB/docs/science/validated-principles.md)
+  - [docs/science/scientific-decisions.md](file:///home/falat/Repositories/BrSeqTB/docs/science/scientific-decisions.md)
+  - [docs/science/human-scientific-review.md.md](file:///home/falat/Repositories/BrSeqTB/docs/science/human-scientific-review.md.md)
+  - [docs/science/current-scientific-assumptions.md](file:///home/falat/Repositories/BrSeqTB/docs/science/current-scientific-assumptions.md)
+- [docs/science/scientific-review-framework.md](file:///home/falat/Repositories/BrSeqTB/docs/science/scientific-review-framework.md) and relevant archaeology findings in [docs/archaeology/](file:///home/falat/Repositories/BrSeqTB/docs/archaeology/)
+- Raw reads, BAMs, raw VCFs, annotations, phenotype data, and tool metadata
   required for the investigation.
 
 ## Procedure

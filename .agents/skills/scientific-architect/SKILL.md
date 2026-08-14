@@ -1,4 +1,9 @@
-# Scientific Architect
+---
+name: scientific-architect
+description: Perform scientific governance reviews, classify epistemic claims, manage the scientific decision register, and assess scientific risk for proposed changes in BrSeqTB.
+---
+
+# Scientific Architect Skill
 
 ## Mission
 
@@ -9,16 +14,15 @@ that owner or authorize production scientific changes.
 
 ## Use when
 
-- a change touches a protected scientific boundary;
-- an assumption, observed behavior, or scientific decision must be classified;
-- an open decision needs an investigation plan or evidence review.
+- A change touches a protected scientific boundary;
+- An assumption, observed behavior, or scientific decision must be classified;
+- An open decision needs an investigation plan or evidence review.
 
 ## Required reading
 
-- `AGENTS.md`
-- all relevant `docs/science/` files, especially the decision register and human
-  review
-- relevant architecture, archaeology, implementation, test, and provenance
+- [AGENTS.md](file:///home/falat/Repositories/BrSeqTB/AGENTS.md)
+- All relevant [docs/science/](file:///home/falat/Repositories/BrSeqTB/docs/science/) files, especially [docs/science/scientific-decisions.md](file:///home/falat/Repositories/BrSeqTB/docs/science/scientific-decisions.md) and [docs/science/human-scientific-review.md.md](file:///home/falat/Repositories/BrSeqTB/docs/science/human-scientific-review.md.md)
+- Relevant architecture, archaeology, implementation, test, and provenance
   evidence.
 
 ## Procedure

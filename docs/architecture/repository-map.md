@@ -106,7 +106,9 @@ BrSeqTB/
 ├── nextflow.config                 # Nextflow global configuration (resources, profiles, executors)
 ├── reads/                          # Input FASTQ directory (Illumina or simplified naming)
 ├── results/                        # Pipeline final deliverables (reports, tables, matrices)
-├── skills/                         # Agent capability and specialization definitions
+├── .agents/                        # Antigravity native workspace customizations
+│   ├── agents/                     # Specialized agent definitions (agent.md)
+│   └── skills/                     # Modular capability packages (SKILL.md)
 └── tests/                          # Automated test directory (currently unpopulated)
 ```
 

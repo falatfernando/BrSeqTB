@@ -37,8 +37,20 @@ CATALOG_MASTER = os.path.join(CATALOG_DIR, "tbdr_catalogue_master_file.csv")
 
 COHORT_FILTER = os.path.join(PROJECT_DIR, "cohort", "filter", "filter.xlsx")
 
-SNPEFF_BASE = os.path.join(PROJECT_DIR, "snpeff")
-RESULTS_BASE = os.path.join(PROJECT_DIR, "resistance")
+# GATK/norm filter mode (BRSEQTB_FILTER_MODE):
+#   cohort     - a site that PASSes the cohort filter is PASS regardless of
+#                the per-sample checks (original behaviour; needs COHORT_FILTER)
+#   per_sample - only the sample's own checks, as for LoFreq; the result does
+#                not depend on which other samples were run (bulk mode)
+FILTER_MODE = os.environ.get("BRSEQTB_FILTER_MODE", "cohort")
+if FILTER_MODE not in ("cohort", "per_sample"):
+    sys.exit(f"[ERROR] BRSEQTB_FILTER_MODE must be 'cohort' or 'per_sample', got: {FILTER_MODE}")
+
+# Per-sample results root (default: projectDir; bulk mode points it at task scratch)
+OUT_ROOT = os.environ.get("BRSEQTB_OUT", PROJECT_DIR)
+
+SNPEFF_BASE = os.path.join(OUT_ROOT, "snpeff")
+RESULTS_BASE = os.path.join(OUT_ROOT, "resistance")
 
 VCF_CALLERS = {
     "gatk": "_gatk.vcf.gz",
@@ -198,8 +210,23 @@ def define_filter_status(
 
     # ========================================================
     # GATK / NORM
-    # First checks cohort filter, then per-sample filters
+    # cohort mode: first checks cohort filter, then per-sample filters
+    # per_sample mode: per-sample filters only
     # ========================================================
+    if caller in ("gatk", "norm") and FILTER_MODE == "per_sample":
+
+        per_sample_fails = gatk_norm_failures(
+            filter_vcf=filter_vcf,
+            af=af,
+            alt_reads=alt_reads,
+            total_depth=total_depth,
+        )
+
+        if per_sample_fails:
+            return ";".join(per_sample_fails), "per_sample"
+
+        return "PASS", "per_sample"
+
     if caller in ("gatk", "norm"):
 
         cohort_val = get_cohort_filter(filter_df, position)
@@ -321,7 +348,7 @@ def recover_annotation(vcf_file, caller, sample_damaged=False):
     filter_df = None
 
     # If gatk-norm use cohort filter
-    if is_gatk:
+    if is_gatk and FILTER_MODE == "cohort":
         filter_df = pd.read_excel(COHORT_FILTER)
 
     for record in vcf:

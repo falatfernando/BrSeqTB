@@ -1,0 +1,61 @@
+accession	reason	source	species	lineage	pDST_phenotype	pDST_consensus	quality	size_mb
+ERR13260859	BDQ_R:CRyPTIC	CRyPTIC	M. tuberculosis	lineage2	R	borderline	HIGH	399
+ERR13261911	BDQ_R:CRyPTIC	CRyPTIC	M. tuberculosis	lineage4	R	borderline	HIGH	421
+ERR4829143	BDQ_R:CRyPTIC	CRyPTIC	M. tuberculosis	lineage3	R	borderline	HIGH	456
+ERR4831769	BDQ_R:CRyPTIC	CRyPTIC	M. tuberculosis	lineage2	R	borderline	HIGH	225
+ERR8975807	BDQ_R:CRyPTIC	CRyPTIC	M. tuberculosis	lineage4	R	borderline	HIGH	596
+ERR8975846	BDQ_R:CRyPTIC	CRyPTIC	M. tuberculosis	lineage2	R	R	HIGH	505
+ERR9992621	BDQ_R:NICD	NICD	M. tuberculosis	lineage4	R	R	MEDIUM	313
+ERR9992625	BDQ_R:NICD	NICD	M. tuberculosis	lineage2	R	R	MEDIUM	309
+ERR9992784	BDQ_R:NICD	NICD	M. tuberculosis	lineage2	R	borderline	MEDIUM	345
+ERR9992874	BDQ_R:NICD	NICD	M. tuberculosis	lineage1	R	R	MEDIUM	327
+ERR9992968	BDQ_R:NICD	NICD	M. tuberculosis	lineage4	R	borderline	MEDIUM	314
+ERR9993114	BDQ_R:NICD	NICD	M. tuberculosis	lineage4	R	R	MEDIUM	348
+ERR13276218	BDQ_R:SEQTREAT2020	SEQTREAT2020	M. tuberculosis	lineage2	R	R	MEDIUM	670
+ERR9119353	BDQ_R:SEQTREAT2020	SEQTREAT2020	M. tuberculosis	lineage2	R	R	MEDIUM	727
+ERR13265057	BDQ_S:CRyPTIC:L2	CRyPTIC	M. tuberculosis	lineage2	S	S	HIGH	254
+ERR4812770	BDQ_S:CRyPTIC:L2	CRyPTIC	M. tuberculosis	lineage2	S	S	HIGH	615
+ERR4828368	BDQ_S:CRyPTIC:L2	CRyPTIC	M. tuberculosis	lineage2	S	S	HIGH	364
+ERR13260398	BDQ_S:CRyPTIC:L4	CRyPTIC	M. tuberculosis	lineage4	S	S	HIGH	475
+ERR4813901	BDQ_S:CRyPTIC:L4	CRyPTIC	M. tuberculosis	lineage4	S	S	MEDIUM	299
+ERR4830552	BDQ_S:CRyPTIC:L4	CRyPTIC	M. tuberculosis	lineage4	S	S	MEDIUM	727
+ERR13286217	BDQ_S:NICD	NICD	M. tuberculosis	lineage2	S	S	MEDIUM	379
+ERR13288729	BDQ_S:NICD	NICD	M. tuberculosis	lineage4	S	S	MEDIUM	325
+ERR4813861	BDQ_borderline	CRyPTIC	M. tuberculosis	lineage4	S	borderline	HIGH	329
+ERR4830561	BDQ_borderline	CRyPTIC	M. tuberculosis	lineage4	R	borderline	MEDIUM	594
+ERR9993166	BDQ_borderline	NICD	M. tuberculosis	lineage2	R	borderline	MEDIUM	291
+ERR4829971	IS6110_in_Rv0678	CRyPTIC	M. tuberculosis	lineage3	R	borderline	HIGH	203
+ERR5917968	IS6110_in_Rv0678	CRyPTIC	M. tuberculosis	lineage4	S	S	LOW	372
+ERR8975644	IS6110_in_Rv0678	CRyPTIC	M. tuberculosis	lineage4	S	S	MEDIUM	366
+ERR9992978	IS6110_in_Rv0678	NICD	M. tuberculosis	lineage2	R	borderline	MEDIUM	297
+ERR13265171	largest_files	CRyPTIC	M. tuberculosis	lineage2	S	S	MEDIUM	3675
+ERR4822332	largest_files	CRyPTIC	M. tuberculosis	lineage4	S	S	HIGH	1773
+ERR4831974	largest_files	CRyPTIC	M. tuberculosis	lineage2	S	S	HIGH	1859
+ERR13260089	lineage1	CRyPTIC	M. tuberculosis	lineage1	S	S	HIGH	341
+ERR4828191	lineage1	CRyPTIC	M. tuberculosis	lineage1	S	S	HIGH	242
+ERR13286064	lineage3	NICD	M. tuberculosis	lineage3	S	S	MEDIUM	299
+ERR4797623	lineage3	CRyPTIC	M. tuberculosis	lineage3	S	S	HIGH	377
+ERR4829760	lineage6	CRyPTIC	M. africanum	lineage6	S	S	HIGH	236
+ERR4796867	lineage:mixed	CRyPTIC	M. tuberculosis	mixed	S	S	HIGH	382
+ERR4810501	lineage:mixed	CRyPTIC	M. tuberculosis	mixed	S	S	HIGH	829
+ERR8665742	lineage:mixed	CRyPTIC	M. tuberculosis	mixed	S	S	MEDIUM	97
+ERR9992751	pDST_discordant	CRyPTIC	M. tuberculosis	lineage4	S	borderline	HIGH	291
+ERR9992872	pDST_discordant	NICD	M. tuberculosis	lineage2	R	borderline	MEDIUM	315
+ERR4797122	quality:LOW	CRyPTIC	M. tuberculosis	lineage1	S	S	LOW	12484
+ERR4797588	quality:LOW	CRyPTIC	M. tuberculosis	mixed	S	S	LOW	559
+ERR8700402	quality:LOW	CRyPTIC	M. tuberculosis	lineage2	S	S	LOW	361
+ERR13260178	smallest_files	CRyPTIC	M. tuberculosis	lineage4	S	S	HIGH	9
+ERR13260590	smallest_files	CRyPTIC	M. tuberculosis	lineage2	S	S	LOW	8
+ERR4812826	smallest_files	CRyPTIC	M. tuberculosis	lineage4	S	S	HIGH	9
+ERR4796427	source:CABBAGE	CABBAGE	Mycobacterium tuberculosis	None	S	None	MEDIUM	308
+ERR5918090	source:CABBAGE	CABBAGE	Mycobacterium tuberculosis	None	S	None	MEDIUM	320
+SRR34768843	source:IAL	IAL	None	None	S	None	MEDIUM	306
+SRR34768910	source:IAL	IAL	None	None	S	None	MEDIUM	211
+SRR30673374	source:NCBI_antibiogram	NCBI_antibiogram	Mycobacterium tuberculosis	None	S	None	MEDIUM	343
+SRR30673587	source:NCBI_antibiogram	NCBI_antibiogram	Mycobacterium tuberculosis	None	S	None	MEDIUM	538
+ERR553284	source:PATRIC	PATRIC	Mycobacterium tuberculosis	None	None	None	MEDIUM	153
+ERR4829564	species:M. africanum	CRyPTIC	M. africanum	lineage6	S	S	HIGH	235
+ERR4812948	species:M. bovis	CRyPTIC	M. bovis	lineageBovis	S	S	HIGH	308
+ERR4829038	species:M. bovis subsp. BCG	CRyPTIC	M. bovis subsp. BCG	lineageBovis.BCG	S	S	HIGH	305
+ERR4829557	species:M. caprae	CRyPTIC	M. caprae	lineageCaprae	S	S	HIGH	274
+ERR4797736	species:M. orgyis	CRyPTIC	M. orgyis	clade_animal_A3	S	S	HIGH	264

@@ -48,6 +48,10 @@ from pathlib import Path
 import pysam
 from Bio import SeqIO
 
+# Mixed-infection SNP table logic, shared with the per-sample script
+sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
+import mix_snp_table
+
 
 # ============================================================
 # PROJECT STRUCTURE
@@ -93,26 +97,7 @@ if not biosamples:
 # ============================================================
 # LOAD FORBIDDEN GENES
 # ============================================================
-def load_forbidden_genes(path: Path):
-
-    if not path.is_file():
-        sys.exit(f"[ERROR] Forbidden genes file not found: {path}")
-
-    forbidden = set()
-
-    with open(path) as f:
-
-        for line in f:
-
-            line = line.strip()
-
-            if not line or line.startswith("#"):
-                continue
-
-            forbidden.add(line.lower())
-
-    return forbidden
-
+load_forbidden_genes = mix_snp_table.load_forbidden_genes
 
 FORBIDDEN_SET = load_forbidden_genes(FORBIDDEN_FILE)
 
@@ -142,39 +127,11 @@ def load_reference(path: Path):
 # ============================================================
 # ANN / FORBIDDEN LOGIC
 # ============================================================
-def extract_genes_from_ann(ann_tuple):
-
-    genes = []
-
-    for ann in ann_tuple:
-
-        fields = ann.split("|")
-
-        if len(fields) >= 5:
-
-            gene_name = fields[3].strip().lower()
-            gene_id   = fields[4].strip().lower()
-
-            genes.append(
-                (gene_name, gene_id)
-            )
-
-    return genes
+extract_genes_from_ann = mix_snp_table.extract_genes_from_ann
 
 
 def is_forbidden_ann(ann_tuple):
-
-    genes = extract_genes_from_ann(ann_tuple)
-
-    for gene_name, gene_id in genes:
-
-        if gene_name in FORBIDDEN_SET:
-            return True
-
-        if gene_id in FORBIDDEN_SET:
-            return True
-
-    return False
+    return mix_snp_table.is_forbidden_ann(ann_tuple, FORBIDDEN_SET)
 
 
 # ============================================================
@@ -415,64 +372,7 @@ def parse_vcf_for_matrix(vcf_path: Path):
 # ORIGINAL PIPELINE LOGIC UNCHANGED
 # ============================================================
 def extract_snp_table(vcf_path: Path):
-
-    rows = []
-
-    vcf = pysam.VariantFile(
-        str(vcf_path)
-    )
-
-    for rec in vcf.fetch():
-
-        if any(
-            len(a) != 1
-            for a in rec.alleles
-        ):
-            continue
-
-        ann = rec.info.get("ANN", ())
-
-        if ann and is_forbidden_ann(ann):
-            continue
-
-        sample = list(
-            rec.samples.values()
-        )[0]
-
-        gt = sample.get("GT")
-
-        if gt is None:
-            continue
-
-        if all(
-            a == 0
-            for a in gt
-        ):
-            continue
-
-        gt_str = "/".join(
-            "." if a is None else str(a)
-            for a in gt
-        )
-
-        alt_idx = (
-            gt[0]
-            if gt[0] != 0
-            else gt[1]
-        )
-
-        alt_base = rec.alleles[alt_idx]
-
-        rows.append({
-            "chrom": rec.chrom,
-            "pos": rec.pos,
-            "ref": rec.ref,
-            "alt": alt_base,
-            "gt": gt_str
-        })
-
-    return rows
-
+    return mix_snp_table.extract_snp_table(vcf_path, FORBIDDEN_SET)
 
 # ============================================================
 # BUILD SNP-MATRIX SEQUENCE
@@ -663,21 +563,7 @@ def main():
             outdir / f"{sample}.tsv"
         )
 
-        with open(outfile, "w") as out:
-
-            out.write(
-                "chrom\tpos\tref\talt\tgt\n"
-            )
-
-            for r in rows:
-
-                out.write(
-                    f"{r['chrom']}\t"
-                    f"{r['pos']}\t"
-                    f"{r['ref']}\t"
-                    f"{r['alt']}\t"
-                    f"{r['gt']}\n"
-                )
+        mix_snp_table.write_snp_table(rows, outfile)
 
         print(
             f"[OK] mixInfection table written: "

@@ -23,10 +23,12 @@ THREADS="${2:-1}"
 MIN_AF="${3:-0.00}"
 
 PROJECT_DIR="$(cd "$(dirname "$0")/.." && pwd)"
+# Per-sample results root (default: projectDir; bulk mode points it at task scratch)
+OUT_ROOT="${BRSEQTB_OUT:-$PROJECT_DIR}"
 
-BWA_DIR="${PROJECT_DIR}/bwa/${BIOSAMPLE}"
+BWA_DIR="${OUT_ROOT}/bwa/${BIOSAMPLE}"
 REF="${PROJECT_DIR}/database/mtbRef/NC0009623.fasta"
-OUTPUT_DIR="${PROJECT_DIR}/lofreq/${BIOSAMPLE}"
+OUTPUT_DIR="${OUT_ROOT}/lofreq/${BIOSAMPLE}"
 
 # ================== VALIDATE MIN_AF ==================
 if ! [[ "$MIN_AF" =~ ^([0-9]+([.][0-9]+)?|[.][0-9]+)$ ]]; then
@@ -112,6 +114,10 @@ fi
 # ================== ADD INDEL QUALITIES ==================
 echo "[RUN] Adding indel qualities with LoFreq indelqual..."
 
+# A run killed mid-way leaves a partial indelqual BAM, and indelqual
+# refuses to overwrite it (the final-VCF skip check above does not see it)
+rm -f "$INDELQUAL_BAM" "${INDELQUAL_BAM}.bai" "$RAW_VCF_OUTPUT"
+
 lofreq indelqual \
     --dindel \
     -f "$REF" \
@@ -152,6 +158,9 @@ bgzip -f "$VCF_OUTPUT"
 bcftools index -f "$VCF_GZ"
 
 echo "[OK] Compressed and indexed VCF."
+
+# Intermediates: a full second copy of the BAM and the uncompressed raw calls
+rm -f "$INDELQUAL_BAM" "${INDELQUAL_BAM}.bai" "$RAW_VCF_OUTPUT"
 
 # ================== COMPLETION ==================
 ELAPSED=$(( SECONDS - START_TIME ))

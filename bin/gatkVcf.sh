@@ -16,10 +16,16 @@ BIOSAMPLE="${1:-}"
 THREADS="${NXF_TASK_CPUS:-1}"
 
 PROJECT_DIR="$(cd "$(dirname "$0")/.." && pwd)"
+# Per-sample results root (default: projectDir; bulk mode points it at task scratch)
+OUT_ROOT="${BRSEQTB_OUT:-$PROJECT_DIR}"
 
-BWA_DIR="${PROJECT_DIR}/bwa/${BIOSAMPLE}"
+BWA_DIR="${OUT_ROOT}/bwa/${BIOSAMPLE}"
 REF="${PROJECT_DIR}/database/mtbRef/NC0009623.fasta"
-OUTPUT_DIR="${PROJECT_DIR}/gatk/${BIOSAMPLE}"
+OUTPUT_DIR="${OUT_ROOT}/gatk/${BIOSAMPLE}"
+
+# JVM heap cap, only when the pipeline passes one (BRSEQTB_JAVA_XMX, e.g. 6g)
+JAVA_OPTS=()
+[[ -n "${BRSEQTB_JAVA_XMX:-}" ]] && JAVA_OPTS=(--java-options "-Xmx${BRSEQTB_JAVA_XMX}")
 
 
 # ================== CHECK INPUT ==================
@@ -76,7 +82,7 @@ echo "---------------------------------------------"
 # ============================================================
 LOG_VCF="${OUTPUT_DIR}/${BIOSAMPLE}_gatk_vcf.log"
 
-gatk HaplotypeCaller \
+gatk "${JAVA_OPTS[@]}" HaplotypeCaller \
     -R "$REF" \
     -I "$BAM_FILE" \
     -O "$RAW_VCF" \
@@ -91,7 +97,7 @@ gatk HaplotypeCaller \
     -A Coverage \
     2>&1 | tee "$LOG_VCF"
 
-gatk VariantFiltration \
+gatk "${JAVA_OPTS[@]}" VariantFiltration \
     -R "$REF" \
     -V "$RAW_VCF" \
     -O "$VCF" \

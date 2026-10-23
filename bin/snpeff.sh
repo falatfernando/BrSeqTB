@@ -19,6 +19,12 @@ if [[ -z "$BIOSAMPLE" ]]; then
 fi
 
 PROJECT_DIR="$(cd "$(dirname "$0")/.." && pwd)"
+# Per-sample results root (default: projectDir; bulk mode points it at task scratch)
+OUT_ROOT="${BRSEQTB_OUT:-$PROJECT_DIR}"
+
+# JVM heap cap, only when the pipeline passes one (BRSEQTB_JAVA_XMX, e.g. 4g)
+JAVA_OPTS=()
+[[ -n "${BRSEQTB_JAVA_XMX:-}" ]] && JAVA_OPTS=("-Xmx${BRSEQTB_JAVA_XMX}")
 
 GENOME_DB="NC_0009623"
 CALLERS=("gatk" "lofreq" "norm" "delly")
@@ -49,7 +55,7 @@ done
     exit 1
 }
 
-OUTPUT_DIR="${PROJECT_DIR}/snpeff/${BIOSAMPLE}"
+OUTPUT_DIR="${OUT_ROOT}/snpeff/${BIOSAMPLE}"
 mkdir -p "$OUTPUT_DIR"
 
 echo "[INFO] snpEff binary : $SNPEFF_BIN"
@@ -63,7 +69,7 @@ echo "---------------------------------------------"
 declare -A CALLER_VCF
 
 for CALLER in "${CALLERS[@]}"; do
-    INPUT_DIR="${PROJECT_DIR}/${CALLER}/${BIOSAMPLE}"
+    INPUT_DIR="${OUT_ROOT}/${CALLER}/${BIOSAMPLE}"
 
     [[ -d "$INPUT_DIR" ]] || {
         echo "[ERROR] Missing caller directory: ${INPUT_DIR}"
@@ -123,13 +129,16 @@ for CALLER in "${CALLERS[@]}"; do
 
     echo "[RUN] Annotating (${CALLER}): ${VCF_NAME}"
 
-    TMP_VCF=$(mktemp --suffix=".vcf")
+    TMP_VCF=$(mktemp -p "$OUTPUT_DIR" --suffix=".vcf")
     gunzip -c "$VCF_FILE" > "$TMP_VCF"
 
-    snpEff eff \
+    # -noStats: no snpEff_summary.html / snpEff_genes.txt in the cwd
+    # (shared projectDir; concurrent samples overwrote each other's copy)
+    snpEff "${JAVA_OPTS[@]}" eff \
         -c "$SNPEFF_CONFIG" \
         -dataDir "$SNPEFF_DATA_ROOT" \
         -v \
+        -noStats \
         -ud 100 \
         "$GENOME_DB" \
         "$TMP_VCF" \

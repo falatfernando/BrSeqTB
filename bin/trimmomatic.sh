@@ -20,8 +20,10 @@ BIOSAMPLE="${1:-}"
 THREADS="${NXF_TASK_CPUS:-1}"
 
 PROJECT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)"
-READS_DIR="${PROJECT_DIR}/reads"
-OUTPUT_DIR="${PROJECT_DIR}/trimmomatic/${BIOSAMPLE}"
+# Reads and per-sample results roots (defaults: projectDir/reads, projectDir)
+READS_DIR="${BRSEQTB_READS:-${PROJECT_DIR}/reads}"
+OUT_ROOT="${BRSEQTB_OUT:-$PROJECT_DIR}"
+OUTPUT_DIR="${OUT_ROOT}/trimmomatic/${BIOSAMPLE}"
 SUMMARY_CSV="${OUTPUT_DIR}/${BIOSAMPLE}_trimmomatic_summary.csv"
 MIN_BOTH_SURVIVING=75.0
 
@@ -53,9 +55,11 @@ fi
 >&2 echo "---------------------------------------------"
 
 # ================== FIND PAIRED READS (SAFE) ==================
+# Illumina naming (<id>_S*_L*_R1_001.fastq.gz, one pair per lane) or
+# simplified ENA/SRA naming (<id>_1.fastq.gz / <id>_2.fastq.gz, one pair)
 mapfile -t R1_FILES < <(
     find -L "$READS_DIR" -maxdepth 1 -type f \
-        -name "${BIOSAMPLE}_S*_L*_R1_001.fastq.gz" | sort
+        \( -name "${BIOSAMPLE}_S*_L*_R1_001.fastq.gz" -o -name "${BIOSAMPLE}_1.fastq.gz" \) | sort
 )
 
 if [[ ${#R1_FILES[@]} -eq 0 ]]; then
@@ -63,9 +67,25 @@ if [[ ${#R1_FILES[@]} -eq 0 ]]; then
     exit 1
 fi
 
+# R2 path for an R1 path, for either naming convention
+r2_of() {
+    case "$1" in
+        *_R1_001.fastq.gz) echo "${1/_R1_001.fastq.gz/_R2_001.fastq.gz}" ;;
+        *) echo "${1%_1.fastq.gz}_2.fastq.gz" ;;
+    esac
+}
+
+# Read-pair base name (log / summary key) for an R1 path
+base_of() {
+    case "$1" in
+        *_R1_001.fastq.gz) basename "${1/_R1_001.fastq.gz/}" ;;
+        *) basename "${1%_1.fastq.gz}" ;;
+    esac
+}
+
 echo "[INFO] Found ${#R1_FILES[@]} read pairs:"
 for R1 in "${R1_FILES[@]}"; do
-    R2="${R1/_R1_001.fastq.gz/_R2_001.fastq.gz}"
+    R2="$(r2_of "$R1")"
 
     if [[ ! -f "$R2" ]]; then
         >&2 echo "[ERROR] Missing paired R2 for:"
@@ -79,8 +99,8 @@ echo "---------------------------------------------"
 
 # ================== RUN TRIMMOMATIC ==================
 for R1 in "${R1_FILES[@]}"; do
-    R2="${R1/_R1_001.fastq.gz/_R2_001.fastq.gz}"
-    BASE=$(basename "${R1/_R1_001.fastq.gz/}")
+    R2="$(r2_of "$R1")"
+    BASE="$(base_of "$R1")"
 
     OUT_R1_PAIRED="${OUTPUT_DIR}/$(basename "$R1")"
     OUT_R2_PAIRED="${OUTPUT_DIR}/$(basename "$R2")"

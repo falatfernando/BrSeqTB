@@ -16,9 +16,12 @@ THREADS="${NXF_TASK_CPUS:-1}"
 # So all paths must be resolved from project root
 PROJECT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)"
 
-TRIM_DIR="${PROJECT_DIR}/trimmomatic/${BIOSAMPLE}"
+# Per-sample results root (default: projectDir; bulk mode points it at task scratch)
+OUT_ROOT="${BRSEQTB_OUT:-$PROJECT_DIR}"
+
+TRIM_DIR="${OUT_ROOT}/trimmomatic/${BIOSAMPLE}"
 DB_DIR="${PROJECT_DIR}/database/kaiju/db"
-OUTPUT_DIR="${PROJECT_DIR}/kaiju/${BIOSAMPLE}"
+OUTPUT_DIR="${OUT_ROOT}/kaiju/${BIOSAMPLE}"
 
 # ===================== CHECK INPUT =====================
 [[ -z "$BIOSAMPLE" ]] && { echo "Usage: ./kaiju.sh <biosample ID>"; exit 1; }
@@ -43,8 +46,8 @@ DB_FMI=$(find "$DB_DIR" -maxdepth 1 -name "*.fmi" | head -n 1)
 [[ -z "$DB_FMI" ]] && { echo "[ERR] FMI index missing"; exit 1; }
 
 # ===================== LOCATE READS =====================
-R1=$(find "$TRIM_DIR" -type f -name "*_R1_001.fastq.gz" | head -n 1)
-R2=$(find "$TRIM_DIR" -type f -name "*_R2_001.fastq.gz" | head -n 1)
+R1=$(find "$TRIM_DIR" -type f \( -name "*_R1_001.fastq.gz" -o -name "${BIOSAMPLE}_1.fastq.gz" \) | sort | head -n 1)
+R2=$(find "$TRIM_DIR" -type f \( -name "*_R2_001.fastq.gz" -o -name "${BIOSAMPLE}_2.fastq.gz" \) | sort | head -n 1)
 
 [[ -z "$R1" || -z "$R2" ]] && { echo "[ERR] FASTQs not found."; exit 1; }
 

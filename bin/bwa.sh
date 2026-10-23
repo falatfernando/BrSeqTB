@@ -11,10 +11,21 @@ BIOSAMPLE="${1:-}"
 THREADS="${NXF_TASK_CPUS:-1}"
 
 PROJECT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)"
+# Per-sample results root (default: projectDir; bulk mode points it at task scratch)
+OUT_ROOT="${BRSEQTB_OUT:-$PROJECT_DIR}"
 
-TRIM_DIR="${PROJECT_DIR}/trimmomatic/${BIOSAMPLE}"
+TRIM_DIR="${OUT_ROOT}/trimmomatic/${BIOSAMPLE}"
 REF="${PROJECT_DIR}/database/mtbRef/NC0009623.fasta"
-OUTPUT_DIR="${PROJECT_DIR}/bwa/${BIOSAMPLE}"
+OUTPUT_DIR="${OUT_ROOT}/bwa/${BIOSAMPLE}"
+
+# bwa mem reads 10M bases x threads per batch unless -K is fixed, and the
+# insert-size model is estimated per batch, so alignments depend on -t.
+# -K 10000000 = the batch size of the original single-threaded runs, at any -t.
+BWA_BATCH_BASES=10000000
+
+# JVM heap cap for Picard, only when the pipeline passes one (BRSEQTB_JAVA_XMX)
+JAVA_OPTS=()
+[[ -n "${BRSEQTB_JAVA_XMX:-}" ]] && JAVA_OPTS=("-Xmx${BRSEQTB_JAVA_XMX}")
 SUMMARY_CSV="${OUTPUT_DIR}/${BIOSAMPLE}_bwa_summary.csv"
 
 MIN_MAPPED=95
@@ -66,7 +77,8 @@ echo "[INFO] Using picard: $(which picard)"
 echo "---------------------------------------------"
 
 # ===================== LOCATE READS =====================
-mapfile -t R1_FILES < <(find "$TRIM_DIR" -type f -name "*_R1_001.fastq.gz" | sort)
+mapfile -t R1_FILES < <(find "$TRIM_DIR" -type f \
+    \( -name "*_R1_001.fastq.gz" -o -name "${BIOSAMPLE}_1.fastq.gz" \) | sort)
 
 if [[ "${#R1_FILES[@]}" -eq 0 ]]; then
     echo "[ERROR] Could not find any R1 FASTQs in: $TRIM_DIR"
@@ -82,27 +94,31 @@ RG_BAMS=()
 
 # ===================== MAPPING and ADD READ GROUPS =====================
 for R1_FILE in "${R1_FILES[@]}"; do
-    R2_FILE="${R1_FILE/_R1_/_R2_}"
+    R1_BASENAME="$(basename "$R1_FILE")"
+
+    if [[ "$R1_BASENAME" =~ ^(.+)_S([0-9]+)_L([0-9]{3})_R1_001\.fastq\.gz$ ]]; then
+        # Illumina naming: one read group per sample number / lane
+        R2_FILE="${R1_FILE/_R1_/_R2_}"
+        READ_GROUP_ID="${BIOSAMPLE}_S${BASH_REMATCH[2]}_L${BASH_REMATCH[3]}"
+        READ_GROUP_PU="S${BASH_REMATCH[2]}_L${BASH_REMATCH[3]}"
+    elif [[ "$R1_BASENAME" == "${BIOSAMPLE}_1.fastq.gz" ]]; then
+        # Simplified (ENA/SRA) naming: a single pair, no lane information
+        R2_FILE="${R1_FILE%_1.fastq.gz}_2.fastq.gz"
+        READ_GROUP_ID="${BIOSAMPLE}"
+        READ_GROUP_PU="${BIOSAMPLE}"
+    else
+        echo "[ERROR] Could not extract sample number and lane from filename: $R1_BASENAME"
+        exit 1
+    fi
 
     if [[ ! -f "$R2_FILE" ]]; then
         echo "[ERROR] Could not find matching R2 for: $R1_FILE"
         exit 1
     fi
 
-    R1_BASENAME="$(basename "$R1_FILE")"
-
-    if [[ "$R1_BASENAME" =~ ^(.+)_S([0-9]+)_L([0-9]{3})_R1_001\.fastq\.gz$ ]]; then
-        SAMPLE_NUMBER="${BASH_REMATCH[2]}"
-        LANE="${BASH_REMATCH[3]}"
-    else
-        echo "[ERROR] Could not extract sample number and lane from filename: $R1_BASENAME"
-        exit 1
-    fi
-
-    READ_GROUP_ID="${BIOSAMPLE}_S${SAMPLE_NUMBER}_L${LANE}"
-    READ_GROUP_PU="S${SAMPLE_NUMBER}_L${LANE}"
-
-    RG_BAM="${TMP_DIR}/${READ_GROUP_ID}.raw.bam"
+    # "rg_" prefix: with simplified naming READ_GROUP_ID == BIOSAMPLE, which
+    # would otherwise collide with RAW_BAM
+    RG_BAM="${TMP_DIR}/rg_${READ_GROUP_ID}.raw.bam"
     RG_BAMS+=("$RG_BAM")
 
     echo "[RUN] Mapping ${R1_BASENAME}"
@@ -110,7 +126,7 @@ for R1_FILE in "${R1_FILES[@]}"; do
     echo "[INFO] Sample name: ${BIOSAMPLE}"
     echo "[INFO] Platform unit: ${READ_GROUP_PU}"
 
-    bwa mem -t "$THREADS" \
+    bwa mem -t "$THREADS" -K "$BWA_BATCH_BASES" \
       -R "@RG\tID:${READ_GROUP_ID}\tSM:${BIOSAMPLE}\tPL:ILLUMINA\tLB:${BIOSAMPLE}\tPU:${READ_GROUP_PU}" \
       "$REF" "$R1_FILE" "$R2_FILE" \
     | samtools view -b - > "$RG_BAM"
@@ -138,7 +154,7 @@ rm -f "$RAW_BAM"
 samtools index "$SORTED_BAM"
 
 # ===================== MARK DUPLICATES =====================
-picard MarkDuplicates \
+picard "${JAVA_OPTS[@]}" MarkDuplicates \
     I="$SORTED_BAM" \
     O="$FINAL_BAM" \
     M="$METRICS_FILE" \
@@ -150,7 +166,7 @@ samtools index "$FINAL_BAM"
 samtools flagstat "$FINAL_BAM" > "$FLAGSTAT_FILE"
 
 # ===================== HEADER OF CSV =====================
-echo "biosample,filename,total_reads,mapped_reads,mapped_pct,duplicates_pct,properly_paired_pct,coverage_pct,status" > "$SUMMARY_CSV"
+echo "biosample,filename,total_reads,mapped_reads,mapped_pct,duplicates_pct,properly_paired_pct,coverage_pct,mean_depth,status" > "$SUMMARY_CSV"
 
 # ===================== METRICS =====================
 total_reads=$(awk '$0 ~ / in total / {print $1; exit}' "$FLAGSTAT_FILE")
@@ -168,8 +184,11 @@ dup_total=$(awk -v dup="$primary_duplicates" -v total="$primary_reads" 'BEGIN {
     else print "0.00%"
 }')
 
-coverage_pct=$(samtools coverage "$FINAL_BAM" 2>/dev/null | awk 'NR==2 {print $6; exit}')
-[[ -z "$coverage_pct" ]] && coverage_pct="0.00"
+# samtools coverage: column 6 = % of genome covered, column 7 = mean depth
+# (mean depth is reported only; PASS/FAIL still uses mapped % and coverage %)
+read -r coverage_pct mean_depth < <(samtools coverage "$FINAL_BAM" 2>/dev/null | awk 'NR==2 {print $6, $7; exit}') || true
+[[ -z "${coverage_pct:-}" ]] && coverage_pct="0.00"
+[[ -z "${mean_depth:-}" ]] && mean_depth="0.00"
 
 mapped_value=$(echo "$mapped_pct" | tr -d '%')
 coverage_value=$(echo "$coverage_pct" | tr -d '%')
@@ -180,7 +199,7 @@ if (( $(echo "$mapped_value < $MIN_MAPPED" | bc -l) )) || \
     status="FAIL"
 fi
 
-echo "${BIOSAMPLE},${BIOSAMPLE}.bam,${total_reads},${mapped_reads},${mapped_pct}%,${dup_total},${paired_pct}%,${coverage_pct},${status}" >> "$SUMMARY_CSV"
+echo "${BIOSAMPLE},${BIOSAMPLE}.bam,${total_reads},${mapped_reads},${mapped_pct}%,${dup_total},${paired_pct}%,${coverage_pct},${mean_depth},${status}" >> "$SUMMARY_CSV"
 rm -rf "$TMP_DIR"
 
 echo "[DONE] BWA finished for ${BIOSAMPLE} → ${status}"

@@ -24,8 +24,11 @@ PROJECT_DIR = os.path.abspath(
 CATALOG_DIR = os.path.join(PROJECT_DIR, "database", "omsCatalog")
 TBDR_CSV = os.path.join(CATALOG_DIR, "tbdrR.csv")
 
-GATK_DIR = os.path.join(PROJECT_DIR, "gatk")
-OUT_DIR  = os.path.join(PROJECT_DIR, "tbdrRCov")
+# Per-sample results root (default: projectDir; bulk mode points it at task scratch)
+OUT_ROOT = os.environ.get("BRSEQTB_OUT", PROJECT_DIR)
+
+GATK_DIR = os.path.join(OUT_ROOT, "gatk")
+OUT_DIR  = os.path.join(OUT_ROOT, "tbdrRCov")
 
 REFERENCE_NAME = "NC_000962.3"
 

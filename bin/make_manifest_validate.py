@@ -190,6 +190,15 @@ def validate_reads_collect_errors(
 
     all_fastqs = [f for f in all_files if f.endswith(".fastq.gz")]
 
+    # Index every FASTQ under each prefix that ends right before a "_", so the
+    # candidates of a biosample (files starting with "<biosample>_") are one
+    # lookup instead of a scan over all files (17k samples x 35k files).
+    by_prefix: Dict[str, List[str]] = defaultdict(list)
+    for f in all_fastqs:
+        for i, ch in enumerate(f):
+            if ch == "_":
+                by_prefix[f[:i]].append(f)
+
     results: Dict[str, Dict[Tuple[str, str], Dict[str, str]]] = {}
 
     for biosample in biosamples:
@@ -204,7 +213,7 @@ def validate_reads_collect_errors(
             )
             example = f"{biosample}_1.fastq.gz"
 
-        candidates = [f for f in all_fastqs if f.startswith(biosample + "_")]
+        candidates = by_prefix.get(biosample, [])
 
         if not candidates:
             errors.append(
@@ -246,7 +255,12 @@ def validate_reads_collect_errors(
                 read = m.group(1)
                 key = ("1", "001") # Dummy S/L for simplified
                 
-            pairs[key][f"R{read}"] = os.path.join(reads_dir, f)
+            path = os.path.join(reads_dir, f)
+            # Listed but unreadable (broken symlink, stale mergerfs entry)
+            if not os.path.isfile(path):
+                errors.append(f"Biosample '{biosample}': listed but not readable: {f}")
+                continue
+            pairs[key][f"R{read}"] = path
 
         missing: List[str] = []
         for (s_num, lane), rr in sorted(pairs.items()):
@@ -290,11 +304,38 @@ def main() -> int:
         default="manifest.tsv",
         help="Output manifest TSV (default: manifest.tsv)"
     )
+    ap.add_argument(
+        "--skip-invalid",
+        action="store_true",
+        help="Leave biosamples with read problems out of the manifest and list them in "
+             "<out>_rejected.tsv instead of failing (for large batches)"
+    )
     args = ap.parse_args()
 
     biosamples = read_biosamples_from_table(args.table, args.sheet)
 
     pairs, errs = validate_reads_collect_errors(args.reads, biosamples, args.naming)
+
+    if errs and args.skip_invalid:
+        # Error messages start with "Biosample '<id>':"
+        rejected: Dict[str, List[str]] = defaultdict(list)
+        for e in errs:
+            m = re.match(r"^Biosample '(.+?)': ", e)
+            if not m:
+                print(f"[ERROR] {e}", file=sys.stderr)
+                return 1
+            rejected[m.group(1)].append(e.replace("\n", " "))
+
+        rejected_path = re.sub(r"\.tsv$", "", args.out) + "_rejected.tsv"
+        with open(rejected_path, "w", encoding="utf-8") as f:
+            f.write("biosample\treason\n")
+            for b in biosamples:
+                if b in rejected:
+                    f.write(f"{b}\t{' | '.join(rejected[b])}\n")
+
+        biosamples = [b for b in biosamples if b not in rejected]
+        print(f"[WARN] {len(rejected)} biosamples rejected, listed in {rejected_path}", file=sys.stderr)
+        errs = []
 
     if errs:
         print("[ERROR] Validation failed. Fix the following issues and re-run:\n", file=sys.stderr)

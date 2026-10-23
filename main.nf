@@ -16,6 +16,8 @@ params.module = null  // Example: bwa, trimmomatic, cohort, etc.
 params.exclude = null
 params.lofreqMinAf      = 0.00
 
+include { taskEnv } from './modules/common'
+
 /*
  * ============================================================
  * BLOCK - INIT CHAIN (SEQUENTIAL + CACHED)
@@ -155,6 +157,7 @@ process FASTQC {
 
     script:
     """
+    ${taskEnv(task, params.readsDir)}
     cd "${projectDir}"
     bash bin/fastqc.sh ${biosample} ${params.readsDir}
     """
@@ -173,6 +176,7 @@ process TRIMMOMATIC {
 
     script:
     """
+    ${taskEnv(task, params.readsDir)}
     cd "${projectDir}"
     bash bin/trimmomatic.sh ${biosample}
     """
@@ -191,6 +195,7 @@ process KAIJU {
 
     script:
     """
+    ${taskEnv(task, params.readsDir)}
     cd "${projectDir}"
     bash bin/kaiju.sh ${biosample}
     """
@@ -209,6 +214,7 @@ process BWA {
 
     script:
     """
+    ${taskEnv(task, params.readsDir)}
     cd "${projectDir}"
     bash bin/bwa.sh ${biosample}
     """
@@ -263,6 +269,7 @@ process GATK_GVCF {
 
     script:
     """
+    ${taskEnv(task, params.readsDir)}
     cd "${projectDir}"
     bash bin/gatkGvcf.sh ${biosample}
     """
@@ -281,6 +288,7 @@ process GATK_VCF {
 
     script:
     """
+    ${taskEnv(task, params.readsDir)}
     cd "${projectDir}"
     bash bin/gatkVcf.sh ${biosample}
     """
@@ -367,6 +375,7 @@ process SNPEFF {
 
     script:
     """
+    ${taskEnv(task, params.readsDir)}
     cd "${projectDir}"
     bash bin/snpeff.sh ${biosample}
     """

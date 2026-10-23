@@ -35,6 +35,7 @@
 #
 # ============================================================
 
+import os
 import sys
 import pandas as pd
 from pathlib import Path
@@ -44,8 +45,11 @@ from pathlib import Path
 # ============================================================
 PROJECT_DIR = Path(__file__).resolve().parent.parent
 
-INPUT_DIR  = PROJECT_DIR / "resistance"
-OUTPUT_DIR = PROJECT_DIR / "results" / "resistance"
+# Per-sample results root (default: projectDir; bulk mode points it at task scratch)
+OUT_ROOT = Path(os.environ.get("BRSEQTB_OUT", PROJECT_DIR))
+
+INPUT_DIR  = OUT_ROOT / "resistance"
+OUTPUT_DIR = OUT_ROOT / "results" / "resistance"
 
 CALLER_PRIORITY = ["gatk", "norm", "lofreq", "delly"]
 

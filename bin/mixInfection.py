@@ -27,7 +27,10 @@ PROJECT_DIR = Path(
     os.path.abspath(os.path.join(os.path.dirname(__file__), ".."))
 )
 
-TSV_ROOT = PROJECT_DIR / "mixInfection"
+# Per-sample results root (default: projectDir; bulk mode points it at task scratch)
+OUT_ROOT = Path(os.environ.get("BRSEQTB_OUT", PROJECT_DIR))
+
+TSV_ROOT = OUT_ROOT / "mixInfection"
 BED_FILE = PROJECT_DIR / "database" / "omsCatalog" / "tbdr.bed"
 
 MIX_THRESHOLD = 0.32   # default threshold

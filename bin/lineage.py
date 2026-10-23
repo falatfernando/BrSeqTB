@@ -15,8 +15,11 @@ PROJECT_DIR = os.path.abspath(
     os.path.join(os.path.dirname(__file__), "..")
 )
 
-NORM_DIR = os.path.join(PROJECT_DIR, "norm")
-OUT_DIR  = os.path.join(PROJECT_DIR, "lineage")
+# Per-sample results root (default: projectDir; bulk mode points it at task scratch)
+OUT_ROOT = os.environ.get("BRSEQTB_OUT", PROJECT_DIR)
+
+NORM_DIR = os.path.join(OUT_ROOT, "norm")
+OUT_DIR  = os.path.join(OUT_ROOT, "lineage")
 
 
 # ================== DATABASE ==================

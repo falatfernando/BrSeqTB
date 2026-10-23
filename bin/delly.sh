@@ -9,10 +9,12 @@ set -euo pipefail
 BIOSAMPLE="${1:-}"
 
 PROJECT_DIR="$(cd "$(dirname "$0")/.." && pwd)"
+# Per-sample results root (default: projectDir; bulk mode points it at task scratch)
+OUT_ROOT="${BRSEQTB_OUT:-$PROJECT_DIR}"
 
-BWA_DIR="${PROJECT_DIR}/bwa/${BIOSAMPLE}"
+BWA_DIR="${OUT_ROOT}/bwa/${BIOSAMPLE}"
 REF="${PROJECT_DIR}/database/mtbRef/NC0009623.fasta"
-OUTPUT_DIR="${PROJECT_DIR}/delly/${BIOSAMPLE}"
+OUTPUT_DIR="${OUT_ROOT}/delly/${BIOSAMPLE}"
 LOG_FILE="${OUTPUT_DIR}/${BIOSAMPLE}_delly.log"
 
 if [[ -z "$BIOSAMPLE" ]]; then

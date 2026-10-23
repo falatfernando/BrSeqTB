@@ -131,3 +131,6 @@ assets/*
 
 # Never version micromamba binary
 /bin/micromamba
+
+# Python bytecode (bin/ scripts import each other; re-excluded after !bin/**)
+bin/__pycache__/

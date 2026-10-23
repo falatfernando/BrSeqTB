@@ -21,9 +21,12 @@ PROJECT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)"
 # ================= INPUTS =================
 BIOSAMPLE="${1:-}"
 
-INPUT_DIR="${PROJECT_DIR}/gatk/${BIOSAMPLE}"
+# Per-sample results root (default: projectDir; bulk mode points it at task scratch)
+OUT_ROOT="${BRSEQTB_OUT:-$PROJECT_DIR}"
+
+INPUT_DIR="${OUT_ROOT}/gatk/${BIOSAMPLE}"
 REF="${PROJECT_DIR}/database/mtbRef/NC0009623.fasta"
-OUTPUT_DIR="${PROJECT_DIR}/norm/${BIOSAMPLE}"
+OUTPUT_DIR="${OUT_ROOT}/norm/${BIOSAMPLE}"
 
 # ================= CHECK INPUT =================
 if [[ -z "$BIOSAMPLE" ]]; then

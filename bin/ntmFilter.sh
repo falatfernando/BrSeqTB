@@ -29,9 +29,12 @@ PROJECT_DIR="$(cd "$(dirname "$0")/.." && pwd)"
 # PATHS
 # ============================================================
 
-LOFREQ_DIR="${PROJECT_DIR}/lofreq/${BIOSAMPLE}"
-GATK_DIR="${PROJECT_DIR}/gatk/${BIOSAMPLE}"
-OUTPUT_DIR="${PROJECT_DIR}/ntmFilter/${BIOSAMPLE}"
+# Per-sample results root (default: projectDir; bulk mode points it at task scratch)
+OUT_ROOT="${BRSEQTB_OUT:-$PROJECT_DIR}"
+
+LOFREQ_DIR="${OUT_ROOT}/lofreq/${BIOSAMPLE}"
+GATK_DIR="${OUT_ROOT}/gatk/${BIOSAMPLE}"
+OUTPUT_DIR="${OUT_ROOT}/ntmFilter/${BIOSAMPLE}"
 SUMMARY_CSV="${OUTPUT_DIR}/${BIOSAMPLE}_ntm_summary.csv"
 
 VCF_LOFREQ="${LOFREQ_DIR}/${BIOSAMPLE}_lofreq.vcf.gz"

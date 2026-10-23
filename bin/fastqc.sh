@@ -18,11 +18,14 @@ export LC_ALL=C
 set -euo pipefail
 
 BIOSAMPLE="${1:-}"
+THREADS="${NXF_TASK_CPUS:-1}"
 
 PROJECT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)"
 
-READS_DIR="${PROJECT_DIR}/reads"
-OUTPUT_DIR="${PROJECT_DIR}/fastqc/${BIOSAMPLE}"
+# Reads and per-sample results roots (defaults: projectDir/reads, projectDir)
+READS_DIR="${BRSEQTB_READS:-${PROJECT_DIR}/reads}"
+OUT_ROOT="${BRSEQTB_OUT:-$PROJECT_DIR}"
+OUTPUT_DIR="${OUT_ROOT}/fastqc/${BIOSAMPLE}"
 REPORT_CSV="${OUTPUT_DIR}/${BIOSAMPLE}_fastqc_summary.csv"
 
 MIN_QUALITY=20      # minimum mean per-base quality for PASS
@@ -57,9 +60,11 @@ fi
 >&2 echo "---------------------------------------------"
 
 # ======== FIND FILES (anchored prefix) ========
-# Strictly match Illumina-style names for this biosample (supports multiple lanes)
+# Strictly match Illumina-style names for this biosample (supports multiple lanes),
+# or simplified ENA/SRA names (<id>_1.fastq.gz / <id>_2.fastq.gz)
 FILES=$(find -L "$READS_DIR" -maxdepth 1 -type f \
-    \( -name "${BIOSAMPLE}_S*_L*_R*_001.fastq.gz" -o -name "${BIOSAMPLE}_S*_L*_R*_001.fastq" \) \
+    \( -name "${BIOSAMPLE}_S*_L*_R*_001.fastq.gz" -o -name "${BIOSAMPLE}_S*_L*_R*_001.fastq" \
+       -o -name "${BIOSAMPLE}_[12].fastq.gz" \) \
     | sort)
 
 if [[ -z "${FILES}" ]]; then
@@ -84,10 +89,10 @@ echo "$FILES" | sed 's/^/   • /' >&2
 >&2 echo "---------------------------------------------"
 
 # ======== RUN FASTQC ========
-for FILE in $FILES; do
-    >&2 echo "[RUN] FastQC on: $FILE"
-    fastqc -o "$OUTPUT_DIR" "$FILE"
-done
+# One call for all files: -t runs one file per thread (per-file reports unchanged)
+>&2 echo "[RUN] FastQC on ${FILE_COUNT} files with ${THREADS} threads"
+# shellcheck disable=SC2086
+fastqc -t "$THREADS" -o "$OUTPUT_DIR" $FILES
 
 >&2 echo "[OK] FastQC completed for all files."
 >&2 echo "[INFO] Unzipping FastQC reports..."

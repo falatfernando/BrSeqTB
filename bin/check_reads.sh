@@ -12,6 +12,9 @@
 #
 # Exit 65 (EX_DATAERR) when the input itself is bad, so the
 # pipeline can skip the sample instead of retrying it.
+# Exit 75 (EX_TEMPFAIL) when the reads directory itself is not
+# reachable (e.g. a USB disk dropped): not the sample's fault, so it
+# must not be recorded as bad input.
 # ============================================================
 
 # Bash reads a script while it runs it: the braces below make bash parse
@@ -31,10 +34,16 @@ OUTPUT_DIR="${OUT_ROOT}/readCheck/${BIOSAMPLE}"
 REPORT="${OUTPUT_DIR}/${BIOSAMPLE}_read_check.tsv"
 
 EX_DATAERR=65
+EX_TEMPFAIL=75
 
 if [[ -z "$BIOSAMPLE" ]]; then
     >&2 echo "Usage: ./check_reads.sh <biosample ID>"
     exit 1
+fi
+
+if [[ ! -d "$READS_DIR" || ! -r "$READS_DIR" || ! -x "$READS_DIR" ]]; then
+    >&2 echo "[STORAGE_UNAVAILABLE] ${BIOSAMPLE}: reads directory not reachable: ${READS_DIR}"
+    exit "$EX_TEMPFAIL"
 fi
 
 mkdir -p "$OUTPUT_DIR"

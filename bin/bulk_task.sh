@@ -8,6 +8,9 @@
 # - success: results dir holds <id>.sample.json and the tables
 # - failure, not final attempt and not bad input: exit non-zero
 #   so Nextflow retries the task
+# - storage unreachable (exit 75): never recorded, exit non-zero on
+#   every attempt; the sample stays pending and the next launch
+#   (watchdog) runs it again
 # - failure, final attempt or bad input (exit 65): write
 #   <id>.failed.json (step, exit code, last log lines) into the
 #   results dir and exit 0, so the failure is published with
@@ -49,6 +52,7 @@ publish() {
 
 BIN="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 EX_DATAERR=65
+EX_TEMPFAIL=75
 
 mkdir -p "$RESULTS"
 ERR_LOG="${PWD}/driver.err"
@@ -62,7 +66,15 @@ if (( rc == 0 )); then
     exit 0
 fi
 
+# A retry runs in a new task directory: drop this attempt's intermediates
+if (( rc == EX_TEMPFAIL )); then
+    rm -rf "${PWD}/scratch" "$RESULTS"
+    >&2 echo "[STORAGE] ${BIOSAMPLE}: storage unreachable, left pending (not recorded)"
+    exit "$rc"
+fi
+
 if (( rc != EX_DATAERR )) && [[ "$FINAL" != "true" ]]; then
+    rm -rf "${PWD}/scratch"
     >&2 echo "[RETRY] ${BIOSAMPLE}: exit ${rc}, Nextflow will retry"
     exit "$rc"
 fi

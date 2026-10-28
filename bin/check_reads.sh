@@ -14,6 +14,10 @@
 # pipeline can skip the sample instead of retrying it.
 # ============================================================
 
+# Bash reads a script while it runs it: the braces below make bash parse
+# the whole file first, so editing it cannot break a running task.
+{
+
 export LC_ALL=C
 set -euo pipefail
 
@@ -76,3 +80,6 @@ for R1 in "${R1_FILES[@]}"; do
 done
 
 >&2 echo "[OK] Reads intact for ${BIOSAMPLE}: ${#R1_FILES[@]} pair(s)"
+
+exit
+}

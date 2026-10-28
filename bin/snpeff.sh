@@ -22,9 +22,11 @@ PROJECT_DIR="$(cd "$(dirname "$0")/.." && pwd)"
 # Per-sample results root (default: projectDir; bulk mode points it at task scratch)
 OUT_ROOT="${BRSEQTB_OUT:-$PROJECT_DIR}"
 
-# JVM heap cap, only when the pipeline passes one (BRSEQTB_JAVA_XMX, e.g. 4g)
+# JVM heap cap, only when the pipeline passes one; this tool runs alone in
+# its task, so the larger BRSEQTB_JAVA_XMX_SOLO applies when set
+JAVA_XMX="${BRSEQTB_JAVA_XMX_SOLO:-${BRSEQTB_JAVA_XMX:-}}"
 JAVA_OPTS=()
-[[ -n "${BRSEQTB_JAVA_XMX:-}" ]] && JAVA_OPTS=("-Xmx${BRSEQTB_JAVA_XMX}")
+[[ -n "$JAVA_XMX" ]] && JAVA_OPTS=("-Xmx${JAVA_XMX}")
 
 GENOME_DB="NC_0009623"
 CALLERS=("gatk" "lofreq" "norm" "delly")

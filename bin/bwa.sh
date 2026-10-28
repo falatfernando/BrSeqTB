@@ -23,9 +23,11 @@ OUTPUT_DIR="${OUT_ROOT}/bwa/${BIOSAMPLE}"
 # -K 10000000 = the batch size of the original single-threaded runs, at any -t.
 BWA_BATCH_BASES=10000000
 
-# JVM heap cap for Picard, only when the pipeline passes one (BRSEQTB_JAVA_XMX)
+# JVM heap cap, only when the pipeline passes one; this tool runs alone in
+# its task, so the larger BRSEQTB_JAVA_XMX_SOLO applies when set
+JAVA_XMX="${BRSEQTB_JAVA_XMX_SOLO:-${BRSEQTB_JAVA_XMX:-}}"
 JAVA_OPTS=()
-[[ -n "${BRSEQTB_JAVA_XMX:-}" ]] && JAVA_OPTS=("-Xmx${BRSEQTB_JAVA_XMX}")
+[[ -n "$JAVA_XMX" ]] && JAVA_OPTS=("-Xmx${JAVA_XMX}")
 SUMMARY_CSV="${OUTPUT_DIR}/${BIOSAMPLE}_bwa_summary.csv"
 
 MIN_MAPPED=95

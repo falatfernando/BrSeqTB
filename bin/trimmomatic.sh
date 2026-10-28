@@ -27,6 +27,13 @@ OUTPUT_DIR="${OUT_ROOT}/trimmomatic/${BIOSAMPLE}"
 SUMMARY_CSV="${OUTPUT_DIR}/${BIOSAMPLE}_trimmomatic_summary.csv"
 MIN_BOTH_SURVIVING=75.0
 
+# JVM heap cap, only when the pipeline passes one; Trimmomatic runs alone in
+# its task, so the larger BRSEQTB_JAVA_XMX_SOLO applies when set (the conda
+# wrapper's default -Xmx1g ran out with -threads 4)
+JAVA_XMX="${BRSEQTB_JAVA_XMX_SOLO:-${BRSEQTB_JAVA_XMX:-}}"
+JAVA_OPTS=()
+[[ -n "$JAVA_XMX" ]] && JAVA_OPTS=("-Xmx${JAVA_XMX}")
+
 # ================== CHECK INPUT ==================
 if [[ -z "$BIOSAMPLE" ]]; then
     >&2 echo "Usage: ./trimmomatic.sh <biosample ID>"
@@ -110,7 +117,7 @@ for R1 in "${R1_FILES[@]}"; do
 
     >&2 echo "[RUN] Trimming: $(basename "$R1") and $(basename "$R2")"
 
-    trimmomatic PE -threads "$THREADS" \
+    trimmomatic "${JAVA_OPTS[@]}" PE -threads "$THREADS" \
         "$R1" "$R2" \
         "$OUT_R1_PAIRED" "$OUT_R1_UNPAIRED" \
         "$OUT_R2_PAIRED" "$OUT_R2_UNPAIRED" \

@@ -25,6 +25,10 @@
 # Exit 65: the input reads are bad (see check_reads.sh); do not retry.
 # ============================================================
 
+# Bash reads a script while it runs it: the braces below make bash parse
+# the whole file first, so editing it cannot break a running task.
+{
+
 export LC_ALL=C
 set -euo pipefail
 
@@ -111,3 +115,6 @@ step export python "${BIN}/export_sample.py" "$BIOSAMPLE" "$RESULTS" "$TIMINGS"
 # ================== CLEAN ==================
 rm -rf "$BRSEQTB_OUT"
 >&2 echo "[DONE] ${BIOSAMPLE}"
+
+exit
+}

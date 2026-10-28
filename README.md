@@ -466,6 +466,74 @@ brseqtb --exclude transmission,iqtree
 
 ---
 
+## Bulk Mode (large datasets)
+
+`bulk.nf` runs thousands of isolates on one machine for weeks. Each biosample is a single task with no cross-sample steps, and it produces three things:
+
+- the resistance profile;
+- every variant call (WHO catalogue or not);
+- QC metrics.
+
+All are written as TSV/JSON that can be loaded into a database.
+
+```bash
+nextflow run bulk.nf -profile bulk \
+    -w /fast/local/disk/work \
+    --manifest manifest.tsv \
+    --readsDir /path/to/reads \
+    --outdir /path/to/results
+```
+
+- `--manifest`: a TSV with a `biosample` header, for example from `bin/make_manifest_validate.py --naming simplified --skip-invalid`. Illumina and ENA/SRA (`<id>_1/_2.fastq.gz`) read names are both accepted.
+- `-w`: put the work directory on local SSD. Intermediates (BAM, gVCF, trimmed reads) stay there only until the sample finishes.
+- **Resume:** re-run the same command. Samples that already have results are skipped. `--retryFailed` also re-runs recorded failures, and `--limit N` processes at most N pending samples.
+
+### Differences from the full pipeline
+
+| | full (`main.nf`) | bulk (`bulk.nf`) |
+| --- | --- | --- |
+| GATK/norm filters | cohort PASS overrides per-sample checks | per-sample checks only (`BRSEQTB_FILTER_MODE=per_sample`): a sample's result does not depend on the other samples |
+| Cohort genotyping, SNP matrix, transmission, IQ-TREE, Kaiju | yes | no |
+| Mixed-infection table | from `snpMatrix.py` (cohort step) | per sample (`bin/mix_snp_table.py`, same code) |
+| Reports | xlsx / docx | TSV / JSON |
+| IS6110 insertions | no | IS Sentinel, its own task and env (`--issentinel false` to skip) |
+| Failures | stop the run | bad reads are recorded at once; other errors are retried twice with more memory, then recorded |
+
+### Outputs per sample
+
+`<outdir>/samples/<id>/`:
+
+| File | Content |
+| --- | --- |
+| `<id>.calls.tsv.gz` | every call of GATK, norm, LoFreq and Delly: position, ref/alt, snpEff effect, HGVS c./p., zygosity, AF, depth, filter status |
+| `<id>.resistance_hits.tsv` | WHO catalogue matches (final per-isolate table, PASS and non-PASS) |
+| `<id>.resistance_profile.tsv` | phenotype and annotation per catalogue drug |
+| `<id>.qc.tsv` | FastQC, Trimmomatic, mapping, mean depth, NTM, mixed infection, oxidative damage, lineage, low-coverage resistance positions |
+| `<id>.sample.json` | status, settings, phenotypes, QC summary, step timings |
+| `vcf/` | the four snpEff-annotated VCFs |
+| `logs/` | one log per step |
+
+`<outdir>/is6110/<id>/`: `<id>_is_candidates.csv`, `<id>_is_formatted.csv` (collapsed junctions), the Delly VCF on the masked reference, and `<id>.issentinel.json`.
+
+A failed sample has `<id>.failed.json` instead of `<id>.sample.json`. It records the step, the exit code, the reason and its logs.
+
+### Progress and database
+
+```bash
+python bin/bulk_status.py manifest.tsv /path/to/results     # done / failed / pending, failed.tsv, time left
+python bin/load_sqlite.py /path/to/results results.db       # idempotent; keep the .db on a local disk
+```
+
+`load_sqlite.py` builds a separate SQLite database: isolate metadata, run status, every variant call, resistance hits and profiles, QC, IS6110 candidates and junctions, failures, and the views `v_profile`, `v_qc` and `v_pass_calls`. Add `--metadata-db <file> --metadata-table <table>` to copy in isolate metadata. Tables, columns and example queries are in [docs/database_schema.md](docs/database_schema.md).
+
+> QC statuses do not check sequencing depth. Filter on `mean_depth` (in `<id>.qc.tsv` and `sample.json`) and on `n_low_cov_resistance_positions`. A susceptible call in a low-depth sample can mean that there is no data at that position.
+
+### Validation
+
+`validation/` holds the validation set and the harness used to compare runs: `normalize_v1.py`, `compare.py`, `compare_vcfs.py` and `compare_issentinel.py`. See `validation/README.md`.
+
+---
+
 ## Profiles Summary
 
 | Profile  | Intended Use             | CPU Strategy         |
@@ -473,6 +541,7 @@ brseqtb --exclude transmission,iqtree
 | standard (default) | Local laptop/workstation | Auto-scaled (~65%)   |
 | lowmem | Low-resource machines (e.g., 8GB RAM) | Conservative, limited parallelism   |
 | hpc      | Cluster environments     | Scheduler-controlled |
+| bulk     | `bulk.nf`, one machine, thousands of samples | 5 samples at a time (22 CPUs / 26 GB budget) |
 
 ---
 

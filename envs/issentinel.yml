@@ -1,0 +1,25 @@
+name: issentinel
+
+# IS6110 insertion detection (IS Sentinel, nf-core-issentinel aa4cb6e).
+# Versions are those of the containers the method was validated with:
+#   bwa/samtools  mulled-v2-fe8faa35...:219b6c27...-0  bwa 0.7.17, samtools 1.16.1
+#   delly/bcftools mulled-v2-f1f59005...:9b23d11a...-0 delly 1.1.6, bcftools 1.15.1
+#   python         mulled-v2-1e9d4f78...:ebca4356...-0 python 3.11, pandas 1.5.2,
+#                                                      numpy 1.23.5, biopython 1.79
+
+channels:
+  - conda-forge
+  - bioconda
+
+channel_priority: strict
+
+dependencies:
+  - bwa=0.7.17
+  - samtools=1.16.1
+  - delly=1.1.6
+  - bcftools=1.15.1
+  - python=3.11
+  - pandas=1.5.2
+  - numpy=1.23.5
+  - biopython=1.79
+  - pigz

@@ -1,7 +1,9 @@
 #!/usr/bin/env bash
 # ============================================================
-# Nextflow task wrapper around bulk_sample.sh (bulk mode)
-# Usage: ./bulk_task.sh <biosample ID> <results dir> <final attempt: true|false> <publish dir>
+# Nextflow task wrapper around a per-sample driver (bulk mode)
+# Usage: ./bulk_task.sh <biosample ID> <results dir> <final attempt: true|false> <publish dir> [driver]
+#   driver: per-sample script in bin/ (default bulk_sample.sh; issentinel_sample.sh
+#           for the IS6110 task)
 #
 # - success: results dir holds <id>.sample.json and the tables
 # - failure, not final attempt and not bad input: exit non-zero
@@ -18,6 +20,10 @@
 # directory across filesystems).
 # ============================================================
 
+# Bash reads a script while it runs it: the braces below make bash parse
+# the whole file first, so editing it cannot break a running task.
+{
+
 export LC_ALL=C
 set -uo pipefail
 
@@ -25,6 +31,7 @@ BIOSAMPLE="$1"
 RESULTS="$2"
 FINAL="$3"
 PUBLISH_DIR="$4"
+DRIVER="${5:-bulk_sample.sh}"
 
 # Copy RESULTS to PUBLISH_DIR/BIOSAMPLE atomically, then drop the local copy
 publish() {
@@ -46,7 +53,7 @@ EX_DATAERR=65
 mkdir -p "$RESULTS"
 ERR_LOG="${PWD}/driver.err"
 
-bash "${BIN}/bulk_sample.sh" "$BIOSAMPLE" "$RESULTS" 2> >(tee "$ERR_LOG" >&2)
+bash "${BIN}/${DRIVER}" "$BIOSAMPLE" "$RESULTS" 2> >(tee "$ERR_LOG" >&2)
 rc=$?
 wait  # let tee finish writing driver.err
 
@@ -85,3 +92,4 @@ rm -rf "${PWD}/scratch"
 publish || { >&2 echo "[FAIL] ${BIOSAMPLE}: publishing to ${PUBLISH_DIR} failed"; exit 1; }
 >&2 echo "[RECORDED] ${BIOSAMPLE}: ${step:-unknown} failed (exit ${rc}) -> ${BIOSAMPLE}.failed.json"
 exit 0
+}

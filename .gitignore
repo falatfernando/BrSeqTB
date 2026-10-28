@@ -134,3 +134,6 @@ assets/*
 
 # Python bytecode (bin/ scripts import each other; re-excluded after !bin/**)
 bin/__pycache__/
+
+# IS Sentinel masked reference + indexes (built by bin/issentinel/prepare_issentinel_db.sh)
+database/issentinel/masked_reference.fasta*

@@ -10,7 +10,10 @@
 #   resistance hits    results/resistance/<s>.xlsx
 #   resistance profile per drug, from the hits (resistanceSummary logic)
 #   qc                 per-module summary CSVs, long format
-#   oxidative damage   resistance/<s>/<s>_oxidative_damage.csv
+#   oxidative damage   resistance/<s>/<s>_oxidative_damage.csv (flagged calls)
+#
+# damage_flag (OXIDATIVE_DAMAGE_SUSPECT or empty) comes from runs with the
+# oxidative-damage flag; older runs have no such column and get it empty.
 # ============================================================
 
 import os
@@ -24,12 +27,13 @@ CALLERS = ["gatk", "norm", "lofreq", "delly"]
 CALL_COLS = [
     "sample", "caller", "pos", "ref", "alt", "nt_change", "aa_change",
     "snpeff_effect", "zygosity", "af", "alt_reads", "total_depth", "qual",
-    "filter_status", "filter_method",
+    "filter_status", "filter_method", "damage_flag",
 ]
 
 HIT_COLS = [
     "sample", "drug", "gene", "tier", "variant", "effect", "evidence",
-    "af", "alt_reads", "heteroresistance", "filter_status", "filter_method", "caller",
+    "af", "alt_reads", "heteroresistance", "filter_status", "filter_method",
+    "damage_flag", "caller",
 ]
 
 PROFILE_COLS = ["sample", "drug", "phenotype", "annotation"]
@@ -109,7 +113,8 @@ def profile_rows(root: Path, sample, drugs):
     rows = []
     if data:
         for key, val in data.items():
-            if key == "biosample" or key.endswith("_annotation"):
+            # damage_flag = the sample's flagged variants, not a drug
+            if key in ("biosample", "damage_flag") or key.endswith("_annotation"):
                 continue
             rows.append({"sample": sample, "drug": key, "phenotype": val,
                          "annotation": data.get(f"{key}_annotation", "")})
@@ -158,7 +163,7 @@ def qc_rows(root: Path, sample):
 
 
 def load_damage(root: Path, sample):
-    """Calls removed by the oxidative-damage guard (may be absent)."""
+    """Calls flagged by the oxidative-damage guard (may be absent)."""
     f = root / "resistance" / sample / f"{sample}_oxidative_damage.csv"
     if not f.exists():
         return None

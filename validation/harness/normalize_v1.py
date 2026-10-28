@@ -44,7 +44,8 @@ def load_profile(run_dir, samples, drugs):
         return pd.DataFrame(columns=ct.PROFILE_COLS)
     wide = pd.read_excel(f, dtype=str).fillna("")
     wide = wide[wide["biosample"].isin(samples)]
-    cols = [c for c in wide.columns if c != "biosample" and not c.endswith("_annotation")]
+    cols = [c for c in wide.columns
+            if c not in ("biosample", "damage_flag") and not c.endswith("_annotation")]
     rows = []
     for _, r in wide.iterrows():
         sample_rows = [{"sample": r["biosample"], "drug": d, "phenotype": r[d],

@@ -8,7 +8,7 @@
 #         <out dir>/<id>.resistance_hits.tsv
 #         <out dir>/<id>.resistance_profile.tsv
 #         <out dir>/<id>.qc.tsv
-#         <out dir>/<id>.oxidative_damage.tsv   (only if calls were removed)
+#         <out dir>/<id>.oxidative_damage.tsv   (only if calls were flagged)
 #         <out dir>/<id>.sample.json            (status, run settings, timings)
 #
 # The tables are built by canonical_tables.py, the same code the

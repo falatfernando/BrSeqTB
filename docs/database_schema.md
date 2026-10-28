@@ -21,7 +21,7 @@ isolate_metadata (1) ──┬── (1) samples             main task: status, 
                        ├── (n) resistance_hits     WHO catalogue matches (final per-isolate table)
                        ├── (n) resistance_profile  one row per drug
                        ├── (n) quality_control     QC metrics, long format
-                       ├── (n) oxidative_damage    calls removed by the damage guard
+                       ├── (n) oxidative_damage    calls flagged by the damage guard
                        ├── (1) is6110_status       IS Sentinel task: status, counts
                        ├── (n) is6110_candidates   IS6110 junction candidates
                        ├── (n) is6110_junctions    candidates collapsed within 10 bp
@@ -75,13 +75,14 @@ One row per isolate that the main task finished (`<id>.sample.json`).
 | qual | VCF QUAL |
 | filter_status | `PASS`, or the failed checks joined by `;` (see below) |
 | filter_method | `per_sample` |
+| damage_flag | `OXIDATIVE_DAMAGE_SUSPECT` for a suspected oxidative-damage artefact (see `oxidative_damage`), else empty; it does not change `filter_status` |
 
 `filter_status` checks:
 
 | Caller | PASS requires | Failure codes |
 | --- | --- | --- |
 | gatk, norm | VCF FILTER PASS, ≥ 3 ALT reads, depth ≥ 10 | GATK filter names (`QD2`, `QUAL30`, `SOR3`, `FS60`, `MQ40`, `MQRankSum`, `ReadPosRankSum`, `FS200`), `ALT_READS_BELOW_3`, `DP_FAIL`, `AF_FAIL` (AF missing) |
-| lofreq | VCF FILTER PASS, ≥ 3 ALT reads, depth ≥ 10 | LoFreq filter names, `ALT_READS_BELOW_3`, `DP_FAIL`, `OXIDATIVE_DAMAGE_SUSPECT` (see `oxidative_damage`) |
+| lofreq | VCF FILTER PASS, ≥ 3 ALT reads, depth ≥ 10 | LoFreq filter names, `ALT_READS_BELOW_3`, `DP_FAIL` |
 | delly | VCF FILTER PASS | `LowQual` |
 
 ### resistance_hits
@@ -99,6 +100,7 @@ The final per-isolate resistance table: `variant_calls` matched to the WHO catal
 | af, alt_reads | as in `variant_calls` |
 | heteroresistance | `HOM` / `HET` (zygosity of the call) |
 | filter_status, filter_method, caller | of the call that was kept |
+| damage_flag | `OXIDATIVE_DAMAGE_SUSPECT` when the call is a suspected oxidative-damage artefact, else empty |
 
 ### resistance_profile
 
@@ -109,7 +111,7 @@ One row per isolate × catalogue drug (all 15 drugs, always).
 | sample | isolate ID |
 | drug | lower-case drug name (`rifampicin`, ...) |
 | phenotype | `R`, `r`, `u`, `S` or `s`, from the PASS rows of `resistance_hits` for that drug, by priority R > r > u > S > s |
-| annotation | the PASS variants behind it, `variant_flagX` joined by `,` (`flagR`, `flagr`, `flagu`, `flagnr` = s, `flagnR` = S) |
+| annotation | the PASS variants behind it, `variant_flagX` joined by `,` (`flagR`, `flagr`, `flagu`, `flagnr` = s, `flagnR` = S); a flagged variant ends in `_oxidativeDamage` |
 
 > **A drug with no PASS catalogue variant is `S`.** It means no variant graded R, r or u was called. It is not evidence of susceptibility when the positions were not covered: check `v_qc.mean_depth` and `n_low_cov_resistance_positions` before reading `S` as susceptible.
 
@@ -132,7 +134,7 @@ Status thresholds (unchanged from the full pipeline): FastQC FAIL if mean qualit
 
 ### oxidative_damage
 
-Calls removed from `resistance_hits` by the oxidative-damage guard. These are LoFreq G>T/C>A calls with AF < 0.05 and a stop-gained or start-lost effect, in an isolate whose low-AF SNVs are mostly G>T/C>A. One row per removed call, with the isolate's damage score.
+Calls flagged by the oxidative-damage guard: LoFreq G>T/C>A calls with AF < 0.05 and a stop-gained or start-lost effect, in an isolate whose low-AF SNVs are mostly G>T/C>A. They are **not** removed: they keep their `filter_status`, so a flagged PASS call still counts in `resistance_profile`, and they carry `damage_flag = 'OXIDATIVE_DAMAGE_SUSPECT'` in `variant_calls` and `resistance_hits`. This table lists them once more, one row per flagged call, with the isolate's damage score and the reason. To exclude them from an analysis, filter on `damage_flag`.
 
 ### is6110_status
 

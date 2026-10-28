@@ -23,11 +23,12 @@ import pandas as pd
 
 CALL_KEY = ["sample", "caller", "pos", "ref", "alt"]
 CALL_FIELDS = ["nt_change", "aa_change", "snpeff_effect", "zygosity", "af",
-               "alt_reads", "total_depth", "qual", "filter_status", "filter_method"]
+               "alt_reads", "total_depth", "qual", "filter_status", "filter_method",
+               "damage_flag"]
 
 HIT_KEY = ["sample", "drug", "variant"]
 HIT_FIELDS = ["gene", "tier", "effect", "evidence", "af", "alt_reads",
-              "heteroresistance", "filter_status", "filter_method", "caller"]
+              "heteroresistance", "filter_status", "filter_method", "damage_flag", "caller"]
 
 PROFILE_KEY = ["sample", "drug"]
 PROFILE_FIELDS = ["phenotype", "annotation"]
@@ -68,6 +69,11 @@ def diff_table(a, b, key, fields, ignore=()):
     """
     a = a.copy()
     b = b.copy()
+    # A field one run predates (e.g. damage_flag) compares as empty
+    for df in (a, b):
+        for f in fields:
+            if f not in df.columns:
+                df[f] = ""
     a["_occ"] = a.groupby(key).cumcount()
     b["_occ"] = b.groupby(key).cumcount()
     k = key + ["_occ"]

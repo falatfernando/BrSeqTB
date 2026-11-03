@@ -115,7 +115,11 @@ def typed(df):
 def append(con, table, path, sample, sep):
     if not path.exists():
         return
-    df = pd.read_csv(path, sep=sep, dtype=str, keep_default_na=False)
+    try:
+        df = pd.read_csv(path, sep=sep, dtype=str, keep_default_na=False)
+    except pd.errors.EmptyDataError:
+        # extract_is_candidates.py writes a bare newline when it finds nothing
+        return
     if df.empty:
         return
     df.columns = [snake(c) for c in df.columns]

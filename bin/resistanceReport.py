@@ -311,8 +311,14 @@ def process_biosample(biosample):
     df = pd.read_excel(input_xlsx)
 
     if df.empty:
-        print(f"[ERROR] OMStarget is empty: {input_xlsx}")
-        sys.exit(1)
+        # No WHO catalogue variant in any caller (e.g. an H37Rv-like isolate):
+        # a valid result, every drug S. Write the final table with no rows.
+        print(f"[OK] No catalogue variants in {input_xlsx}; writing an empty report")
+        write_damage_qc(biosample, pd.DataFrame(columns=DAMAGE_COLUMNS))
+        OUTPUT_DIR.mkdir(parents=True, exist_ok=True)
+        pd.DataFrame(columns=FINAL_COLUMNS).to_excel(output_xlsx, index=False)
+        print(f"[OK] Final resistance report written → {output_xlsx}")
+        return
 
     # ===================== RESOLVE MNPs-INDELs-SNPs overlay =====================
     df = resolve_complex_variants(df)
